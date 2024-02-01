@@ -1,8 +1,10 @@
 package lk.ijse.gdse.posbackend.api;
 
 import jakarta.json.bind.JsonbBuilder;
+import lk.ijse.gdse.posbackend.bo.BOFactory;
 import lk.ijse.gdse.posbackend.bo.custom.impl.CustomerBOImpl;
 import lk.ijse.gdse.posbackend.dto.CustomerDTO;
+import org.w3c.dom.ls.LSOutput;
 
 import javax.naming.InitialContext;
 import javax.servlet.ServletException;
@@ -20,9 +22,11 @@ import java.util.ArrayList;
 public class CustomerServlet extends HttpServlet {
 
     DataSource pool;
-    CustomerBOImpl customerBO = new CustomerBOImpl();
+    CustomerBOImpl customerBO = BOFactory.getInstance().getBO(BOFactory.BOTypes.CUSTOMER);
+
 
     public void init() {
+
         try {
             pool = (DataSource) new InitialContext().lookup("java:/comp/env/jdbc/TestDB");
             System.out.println(pool.getConnection());
@@ -37,7 +41,6 @@ public class CustomerServlet extends HttpServlet {
         try (Connection connection = pool.getConnection()) {
 
             CustomerDTO customerDTO = JsonbBuilder.create().fromJson(req.getReader(), CustomerDTO.class);
-
             CustomerDTO searchCustomer = customerBO.searchCustomer(connection, customerDTO.getId());
             System.out.println("ddd" + searchCustomer);
 
@@ -57,7 +60,6 @@ public class CustomerServlet extends HttpServlet {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
 
     }
 
@@ -94,7 +96,6 @@ public class CustomerServlet extends HttpServlet {
             }
         }
 
-
     }
 
     @Override
@@ -126,7 +127,6 @@ public class CustomerServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        System.out.println("fff");
         try(Connection connection=pool.getConnection()){
             CustomerDTO customerDTO = JsonbBuilder.create().fromJson(req.getReader(), CustomerDTO.class);
             System.out.println("update"+customerDTO);
@@ -150,7 +150,6 @@ public class CustomerServlet extends HttpServlet {
             System.out.println(e);
             resp.getWriter().write(HttpServletResponse.SC_BAD_GATEWAY);
         }
-
 
     }
 

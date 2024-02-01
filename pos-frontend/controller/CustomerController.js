@@ -1,4 +1,9 @@
-getAllCustomers();
+
+window.onload = function() {
+    getAllCustomers();
+    tblRowClick();
+    tblRowDoubleClick();
+};
 
 // get all customers
 function getAllCustomers() {
@@ -34,7 +39,10 @@ function loadDataToTable(response) {
 
         $("#cTBody").append(data)
 
+
     }
+    tblRowClick();
+    tblRowDoubleClick();
 
 }
 
@@ -220,8 +228,6 @@ $("#CustomerUpdateBtn").click(function () {
 })
 
 
-
-
 // live table search
 $("#searchTxt").on("input", function () {
 
@@ -259,8 +265,7 @@ function setDataToLiveTableSearch(response) {
 }
 
 // table row click
-
-$(document).ready(function () {
+function tblRowClick(){
     $("#cTBody tr").click(function () {
 
         let id = $(this).children(":nth-child(1)").text();
@@ -271,8 +276,7 @@ $(document).ready(function () {
         setCustomerTableDataToFields(id, name, address, salary);
 
     })
-});
-
+}
 function setCustomerTableDataToFields(id, name, address, salary) {
     $("#cId").val(id);
     $("#cName").val(name);
@@ -282,8 +286,8 @@ function setCustomerTableDataToFields(id, name, address, salary) {
 }
 
 // table row double click
-$(document).ready(function () {
-    $("#cTBody>tr").dblclick(function () {
+function tblRowDoubleClick(){
+    $("#cTBody tr").dblclick(function () {
         let cId = $(this).children(":nth-child(1)").text();
         let confirmation = confirm("Do you really want to delete this customer?")
         if (confirmation) {
@@ -291,16 +295,14 @@ $(document).ready(function () {
         }
 
     })
-});
+}
+
 
 // clear input fields
 
 $("#customerClearBTn").click(function () {
     clearCustomerInputFields();
 })
-
-
-
 
 
 $("#searcBtn").click(function () {
