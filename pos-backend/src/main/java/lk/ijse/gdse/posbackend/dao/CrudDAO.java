@@ -1,0 +1,11 @@
+package lk.ijse.gdse.posbackend.dao;
+
+import java.util.ArrayList;
+
+public interface CrudDAO <T,C,ID>{
+    boolean save(T t,C c);
+    boolean update(T t,C c);
+    boolean delete(ID id,C c);
+    ArrayList<T> getAll(C c);
+    T search(C c,ID id);
+}
