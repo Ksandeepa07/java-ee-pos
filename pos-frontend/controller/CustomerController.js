@@ -70,6 +70,7 @@ function saveCustomer(cId, cName, cAddress, cSalary) {
         success: function (response) {
             console.log(response);
             getAllCustomers();
+            clearCustomerInputFields();
             Swal.fire(
                 'Customer Saved Successfully',
                 'Customer has been Saved successfully..!',
@@ -77,6 +78,7 @@ function saveCustomer(cId, cName, cAddress, cSalary) {
             )
         },
         error: function (jqXHR) {
+            clearCustomerInputFields();
             console.log(jqXHR);
             if (jqXHR.status === 409) {
                 Swal.fire(
@@ -124,6 +126,7 @@ function deleteCustomer(cId) {
         success: function (response) {
             console.log(response);
             getAllCustomers();
+            clearCustomerInputFields();
             Swal.fire(
                 'Customer Deleted Successfully',
                 'Customer has been Deleted successfully..!',
@@ -131,6 +134,7 @@ function deleteCustomer(cId) {
             )
         },
         error: function (jqXHR) {
+            clearCustomerInputFields();
             console.log(jqXHR);
             if (jqXHR.status === 409) {
                 Swal.fire(
@@ -151,13 +155,22 @@ function deleteCustomer(cId) {
 }
 
 $("#customerDeleteBtn").click(function () {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'You are about to delete this record!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Close'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let cId = $("#cId").val();
+            deleteCustomer(cId);
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            Swal.fire('Cancelled', 'Your record is safe :)', 'info');
+        }
+    });
 
-    let confirmation = confirm("Do you really want to delete this customer ?");
-    if (confirmation) {
-        let cId = $("#cId").val();
-        deleteCustomer(cId);
-
-    }
 })
 
 // customer update
@@ -180,6 +193,7 @@ function updateCustomer(cId, cName, cAddress, cSalary) {
         success: function (response) {
             console.log(response);
             getAllCustomers();
+            clearCustomerInputFields();
             Swal.fire(
                 'Customer Updated Successfully',
                 'Customer has been updated successfully..!',
@@ -187,6 +201,7 @@ function updateCustomer(cId, cName, cAddress, cSalary) {
             )
         },
         error: function (jqXHR) {
+            clearCustomerInputFields();
             console.log(jqXHR);
             if (jqXHR.status === 409) {
                 Swal.fire(
@@ -213,24 +228,31 @@ $("#CustomerUpdateBtn").click(function () {
     let cAddress = $("#cAddress").val();
     let cSalary = $("#cSalary").val();
 
-    let confirmation = confirm("Do you really want to update this customer ?");
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'You are about to update this record!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, update it!',
+        cancelButtonText: 'Close'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            if(checkAll()){
+                updateCustomer(cId, cName, cAddress, cSalary);
+            }else{
+                alert("Error! Try Again !")
+                clearItemInputFields();
+            }
 
-    if (confirmation) {
-        if(checkAll()){
-            updateCustomer(cId, cName, cAddress, cSalary);
-        }else{
-
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            Swal.fire('Cancelled', 'Your record is not updated :)', 'info');
         }
-
-    }
-
+    });
 
 })
 
-
 // live table search
 $("#searchTxt").on("input", function () {
-
     let name = $("#searchTxt").val();
 
     $.ajax({
@@ -289,10 +311,21 @@ function setCustomerTableDataToFields(id, name, address, salary) {
 function tblRowDoubleClick(){
     $("#cTBody tr").dblclick(function () {
         let cId = $(this).children(":nth-child(1)").text();
-        let confirmation = confirm("Do you really want to delete this customer?")
-        if (confirmation) {
-            deleteCustomer(cId);
-        }
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You are about to delete this record!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Close'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                deleteCustomer(cId);
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                Swal.fire('Cancelled', 'Your record is safe :)', 'info');
+            }
+        });
 
     })
 }
@@ -305,10 +338,6 @@ $("#customerClearBTn").click(function () {
 })
 
 
-$("#searcBtn").click(function () {
-    setCustomerDataToTextFields();
-})
-
 
 // function searchCustomer(id) {
 //     return customerDB.find(function (Customer) {
@@ -316,18 +345,3 @@ $("#searcBtn").click(function () {
 //     });
 // }
 
-function setCustomerDataToTextFields() {
-
-    if (searchCustomer($("#searchTxt").val()) == undefined) {
-        alert("This Customer Id is not Available!");
-
-    } else {
-        let customer = searchCustomer($("#searchTxt").val());
-
-        $("#cId").val(customer.id);
-        $("#cName").val(customer.name);
-        $("#cAddress").val(customer.address);
-        $("#cContact").val(customer.contact);
-        $("#cEmail").val(customer.email);
-    }
-}

@@ -28,7 +28,7 @@ static {
         @Override
         protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
             String origin = req.getHeader("origin");
-            System.out.println(origin);
+//            System.out.println(origin);
             if(origin == null){
 //                res.sendError(HttpServletResponse.SC_BAD_REQUEST,"CORS Policy Violation");
                 res.getWriter().write("Server is Started And No Requests Has Been Received Yet!!");

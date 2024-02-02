@@ -1,6 +1,7 @@
 package lk.ijse.gdse.posbackend.bo;
 
 import lk.ijse.gdse.posbackend.bo.custom.impl.CustomerBOImpl;
+import lk.ijse.gdse.posbackend.bo.custom.impl.ItemBOImpl;
 
 public class BOFactory {
 
@@ -19,7 +20,7 @@ public class BOFactory {
     }
 
 
-    public  enum BOTypes{
+    public enum BOTypes{
         CUSTOMER,ITEM
     }
 
@@ -27,6 +28,9 @@ public <T extends SuperBO > T getBO(BOTypes boTypes){
         switch (boTypes){
             case CUSTOMER:
                 return (T) new CustomerBOImpl();
+
+            case ITEM:
+                return (T) new ItemBOImpl();
 
             default:
                 return null;

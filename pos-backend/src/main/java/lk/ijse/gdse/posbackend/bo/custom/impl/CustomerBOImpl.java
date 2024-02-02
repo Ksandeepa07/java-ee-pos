@@ -1,6 +1,7 @@
 package lk.ijse.gdse.posbackend.bo.custom.impl;
 
 import lk.ijse.gdse.posbackend.bo.custom.CustomerBO;
+import lk.ijse.gdse.posbackend.dao.DAOFactory;
 import lk.ijse.gdse.posbackend.dao.custom.impl.CustomerDAOImpl;
 import lk.ijse.gdse.posbackend.dto.CustomerDTO;
 import lk.ijse.gdse.posbackend.entity.Customer;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 
 public class CustomerBOImpl implements CustomerBO<CustomerDTO, Connection, String> {
 
-    CustomerDAOImpl customerDAO = new CustomerDAOImpl();
+    CustomerDAOImpl customerDAO = DAOFactory.getInstance().getDAO(DAOFactory.DAOTypes.CUSTOMER);
 
     @Override
     public boolean saveCustomer(CustomerDTO customerDTO, Connection connection) {

@@ -1,4 +1,4 @@
-const ITEM_ID_REGEX=/^(I00-)[0-9]{3}$/;
+const ITEM_ID_REGEX=/^I\d{3}$/;
 const ITEM_NAME_REGEX=/^[A-Za-z ]{5,}$/;
 const ITEM_TYPE_REGEX=/^[A-Za-z ]{5,}$/;
 const ITEM_UNIT_PRICE_REGEX=/^\$?\d+(?:\.\d{2})?$/;
@@ -6,22 +6,22 @@ const ITEM_QTY_REGEX=/^\d+$/;
 
 let itemValidation=new Array();
 
-itemValidation.push({field:$("#id"),regEx:ITEM_ID_REGEX});
-itemValidation.push({field:$("#name"),regEx:ITEM_NAME_REGEX});
+itemValidation.push({field:$("#itemId"),regEx:ITEM_ID_REGEX});
+itemValidation.push({field:$("#itemName"),regEx:ITEM_NAME_REGEX});
 itemValidation.push({field:$("#type"),regEx:ITEM_TYPE_REGEX});
 itemValidation.push({field:$("#unitPrice"),regEx:ITEM_UNIT_PRICE_REGEX});
 itemValidation.push({field:$("#qty"),regEx:ITEM_QTY_REGEX});
 
 function clearItemInputFields(){
-    $("#id,#name,#type,#unitPrice,#qty").val("");
-    $("#id,#name,#type,#unitPrice,#qty").css("border", "1px solid #ced4da");
+    $("#itemId,#itemName,#type,#unitPrice,#qty").val("");
+    $("#itemId,#itemName,#type,#unitPrice,#qty").css("border", "1px solid #ced4da");
     $("#id").focus();
     setItemControllerBtn();
 }
 
 setItemControllerBtn();
 
-$("#id,#name,#type,#unitPrice,#qty").on("keyup",function(e){
+$("#itemId,#itemName,#type,#unitPrice,#qty").on("keyup",function(e){
     let indexNo = itemValidation.indexOf(itemValidation.find((c) => c.field.attr("id") == e.target.id));
     console.log(indexNo);
 
@@ -85,23 +85,26 @@ function checkAllItemsValidation() {
 
 
 function setItemControllerBtn() {
-    $("#itemDeletBtn").prop("disabled", true);
-    $("#itemUpdateBtn").prop("disabled", true);
+    // $("#itemDeleteBtn").prop("disabled", true);
+    // $("#itemUpdateBtn").prop("disabled", true);
 
     if (checkAllItemsValidation()) {
         $("#itemSaveBtn").prop("disabled", false);
+        $("#itemUpdateBtn").prop("disabled", false);
     } else {
         $("#itemSaveBtn").prop("disabled", true);
+        $("#itemUpdateBtn").prop("disabled", true);
+
     }
 
-    let id = $("#id").val();
-    if (searchItem(id) === undefined) {
-        $("#itemDeletBtn").prop("disabled", false);
-        $("#itemUpdateBtn").prop("disabled", true);
-    } else {
-        $("#itemDeletBtn").prop("disabled", false);
-        $("#itemUpdateBtn").prop("disabled", false);
-    }
+    // let id = $("#id").val();
+
+        // $("#itemDeleteBtn").prop("disabled", false);
+        // $("#itemUpdateBtn").prop("disabled", true);
+        //
+        // $("#itemDeleteBtn").prop("disabled", false);
+        // $("#itemUpdateBtn").prop("disabled", false);
+
 
 }
 

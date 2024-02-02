@@ -2,6 +2,6 @@ let Item = {
     id: "",
     name: "",
     type: "",
-    unitPrice: "",
+    price: "",
     qty: ""
 }

@@ -1,226 +1,306 @@
-$("#itemSaveBtn").click(function () {
-    let reult=saveItem();
-    if(reult){
-        if(checkAllItemsValidation()){
-            Swal.fire(
-                'Item Saved Sucessfully',
-                'Item has been Saved sucessfully..!',
-                'success'
-            )
-                getAllItem();
-                clearItemInputFields();
-                ItemDataBindEvents();
-                doubleCLickDeleteIetm();
-                loadItemIds();
-                $("#itemSaveBtn").prop("disabled", true);
-
+getAllItems();
+function getAllItems(){
+    $.ajax({
+        url: "http://localhost:8080/pos/item?method=getAll",
+        method: "GET",
+        contentType: "application/json",
+        success: function (response) {
+            console.log(response);
+            loadItemDataToTable(response)
+        },
+        error: function (jqXHR) {
+            console.log(jqXHR);
         }
-      
-    }else{
-        alert("Error! Try Again !");
-        clearItemInputFields();
-
-    }
-
-})
-
-$("#itemUpdateBtn").click(function () {
-   let result= updateItem();
-
-   if(result){
-    Swal.fire(
-        'Item Updated Sucessfully',
-        'Item has been Updated sucessfully..!',
-        'success'
-    )
-    getAllItem();
-    clearItemInputFields();
-    ItemDataBindEvents();
-    doubleCLickDeleteIetm();
-
-   }else{
-    alert("Error! Try Again !");
-    clearItemInputFields();
-}
-
-
-})
-
-$("#itemDeletBtn").click(function () {
-   
-    let result=deleteItem();
-    if(result){
-        Swal.fire(
-            'Item Deleted Sucessfully',
-            'Item has been Deleted sucessfully..!',
-            'success'
-        )
-        getAllItem();
-        ItemDataBindEvents();
-        clearItemInputFields();
-        doubleCLickDeleteIetm();
-    }else{
-        alert("Error! Try Again !");
-        clearItemInputFields();
-    }
-
-
-})
-
-$("#searcBtn").click(function () {
-    setItemDataToTextFields();
-})
-
-
-function saveItem() {
-      if(searchItem($("#id").val())===undefined){
-        let newwItem = Object.assign({}, Item);
-
-        let id=$("#id").val();
-        let name=$("#name").val();
-        let type=$("#type").val();
-        let price=$("#unitPrice").val();
-        let qty=$("#qty").val();
-
-        newwItem.id = id ;
-        newwItem.name =  name;
-        newwItem.type =  type;
-        newwItem.unitPrice =  price;
-        newwItem.qty =  qty;
-    
-        itemDB.push(newwItem);
-        return true;
-      }else{
-          alert("Item Id Is Available");
-      }
-
-     
-}
-
-function updateItem(){
-    if(searchItem($("#id").val())==undefined){
-        alert("This Item Id is not available!");
-    }else{
-       let item= searchItem($("#id").val());
-
-       item.name=$("#name").val();
-       item.type=$("#type").val();
-       item.unitPrice=$("#unitPrice").val();
-       item.qty=$("#qty").val();
-
-       return true;
-
-    }
-
-}
-
-function deleteItem(){
-    if(searchItem($("#id").val())==undefined){
-        alert("This Item Id is not Available!");
-
-    }else{
-        let confirmation=confirm("Do you really want to delete this item?");
-        if(confirmation){
-            for(let i=0; i<itemDB.length; i++){
-                if(itemDB[i].id==$("#id").val()){
-                    itemDB.splice(i,1);
-                    console.log(itemDB);
-                    return true;
-                }
-            }
-        }
-    }
-}
-
-
-function getAllItem() {
-    $("#iTbody").empty();
-    for (let i = 0; i < itemDB.length; i++) {
-        let tRow = `<tr> 
-       <td>${itemDB[i].id} </td>
-       <td>${itemDB[i].name} </td>
-       <td>${itemDB[i].type} </td>
-       <td>${itemDB[i].unitPrice} </td>
-       <td>${itemDB[i].qty} </td> </tr>`;
-       $("#iTbody").append(tRow);
-    }    
-}
-
-
-function searchItem(id){
-   return itemDB.find(function(Item){
-        return Item.id==id;
 
     })
+
 }
 
+function loadItemDataToTable(response) {
+    $("#iTbody").empty();
+    for (const itemData of response) {
+        let row=`<tr>
+        <td>${itemData.id}</td>
+        <td>${itemData.name}</td>
+        <td>${itemData.type}</td>
+        <td>${itemData.price}</td>
+        <td>${itemData.qty}</td>
+                        </tr>`;
 
-function setItemDataToTextFields() {
+        $("#iTbody").append(row);
 
-    if (searchItem($("#searchTxt").val()) == undefined) {
-        alert("This Item Id is not Available!");
-
-    } else {
-        let Item = searchItem($("#searchTxt").val());
-
-        $("#id").val(Item.id);
-        $("#name").val(Item.name);
-        $("#type").val(Item.type);
-        $("#unitPrice").val(Item.unitPrice);
-        $("#qty").val(Item.qty);
     }
+    itemDataBindEvents();
+    doubleCLickDeleteItem();
 
 }
 
+function saveItem(id,name,type,price,qty) {
 
-ItemDataBindEvents();
-function ItemDataBindEvents() {
-    $("#iTbody>tr").click(function () {
+    let newItem = Object.assign({}, Item);
+    newItem.id = id ;
+    newItem.name =  name;
+    newItem.type =  type;
+    newItem.price =  price;
+    newItem.qty =  qty;
+
+    let itemData = JSON.stringify(newItem);
+
+    $.ajax({
+        url: "http://localhost:8080/pos/item",
+        method: "POST",
+        contentType: "application/json",
+        data: itemData,
+
+        success: function (response) {
+            console.log(response);
+            getAllItems();
+            clearItemInputFields();
+            Swal.fire(
+                'Item Saved Successfully',
+                'Item has been Saved successfully..!',
+                'success'
+            )
+        },
+        error: function (jqXHR) {
+            clearItemInputFields();
+            console.log(jqXHR);
+            if (jqXHR.status === 409) {
+                Swal.fire(
+                    'This Item Id is already exists',
+                    'Item saved failed..!',
+                    'error'
+                )
+                return;
+            }
+            Swal.fire(
+                'process failed',
+                'Item saved failed..!',
+                'error'
+            )
+        }
+    })
+
+    $("#itemSaveBtn").prop("disabled", true);
+
+}
+$("#itemSaveBtn").click(function () {
+
+    let id=$("#itemId").val();
+    let name=$("#itemName").val();
+    let type=$("#type").val();
+    let price=$("#unitPrice").val();
+    let qty=$("#qty").val();
+
+        if(checkAllItemsValidation()){
+            saveItem(id,name,type,price,qty);
+
+        }else{
+            alert("Error! Try Again !")
+            clearItemInputFields();
+        }
+
+})
+
+function updateItem(id, name, type, price,qty){
+    let newItem = Object.assign({}, Item);
+    newItem.id = id ;
+    newItem.name =  name;
+    newItem.type =  type;
+    newItem.price =  price;
+    newItem.qty =  qty;
+
+    let itemData = JSON.stringify(newItem);
+
+    $.ajax({
+        url: "http://localhost:8080/pos/item",
+        method: "PUT",
+        contentType: "application/json",
+        data: itemData,
+
+        success: function (response) {
+            console.log(response);
+            getAllItems();
+            clearItemInputFields();
+            Swal.fire(
+                'Item Updated Successfully',
+                'Item has been updated successfully..!',
+                'success'
+            )
+        },
+        error: function (jqXHR) {
+            clearItemInputFields();
+            console.log(jqXHR);
+            if (jqXHR.status === 409) {
+                Swal.fire(
+                    'Can not find item Id !!',
+                    'Item update failed..!',
+                    'error'
+                )
+                return;
+            }
+            Swal.fire(
+                'process failed',
+                'Item saved failed..!',
+                'error'
+            )
+        }
+    })
+    $("#itemUpdateBtn").prop("disabled", true);
+
+}
+$("#itemUpdateBtn").click(function () {
+    let id=$("#itemId").val();
+    let name=$("#itemName").val();
+    let type=$("#type").val();
+    let price=$("#unitPrice").val();
+    let qty=$("#qty").val();
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'You are about to update this record!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, update it!',
+        cancelButtonText: 'Close'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            if(checkAllItemsValidation()){
+                updateItem(id, name, type, price,qty);
+            }else{
+                alert("Error! Try Again !")
+                clearItemInputFields();
+            }
+
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            Swal.fire('Cancelled', 'Your record is not updated :)', 'info');
+        }
+    });
+
+})
+
+function deleteItem(itemId){
+    $.ajax({
+        url: "http://localhost:8080/pos/item?id=" + itemId,
+        method: "delete",
+
+        success: function (response) {
+            console.log(response);
+            getAllItems();
+            clearItemInputFields();
+            Swal.fire(
+                'Item Deleted Successfully',
+                'Item has been Deleted successfully..!',
+                'success'
+            )
+        },
+        error: function (jqXHR) {
+            clearItemInputFields();
+            console.log(jqXHR);
+            if (jqXHR.status === 409) {
+                Swal.fire(
+                    'Can not find Item Id !!',
+                    'Item delete failed..!',
+                    'error'
+                )
+                return;
+            }
+            Swal.fire(
+                'process failed',
+                'Item delete failed..!',
+                'error'
+            )
+        }
+
+    })
+
+}
+$("#itemDeleteBtn").click(function () {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'You are about to delete this record!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Close'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let itemId = $("#itemId").val();
+            deleteItem(itemId);
+
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            Swal.fire('Cancelled', 'Your record is safe :)', 'info');
+        }
+    });
+
+})
+
+
+function itemDataBindEvents() {
+    $("#iTbody tr").click(function () {
         let id = $(this).children(":nth-child(1)").text();
         let name = $(this).children(":nth-child(2)").text();
         let type = $(this).children(":nth-child(3)").text();
         let unitPrice = $(this).children(":nth-child(4)").text();
         let qty = $(this).children(":nth-child(5)").text();
-
-        setItemTableDataToFileds(id, name, type, unitPrice, qty);
+        setItemTableDataToFields(id, name, type, unitPrice, qty);
 
     })
 }
+function setItemTableDataToFields(id, name, type, unitPrice, qty) {
 
-function setItemTableDataToFileds(id, name, type, unitPrice, qty) {
-
-    $("#id").val(id.trim());
-    $("#name").val(name.trim());
+    $("#itemId").val(id.trim());
+    $("#itemName").val(name.trim());
     $("#type").val(type.trim());
     $("#unitPrice").val(parseInt(unitPrice));
     $("#qty").val(parseInt(qty));
 
 }
 
-doubleCLickDeleteIetm();
-function doubleCLickDeleteIetm() {
-    $("#iTbody>tr").dblclick(function () {
-        console.log(itemDB);
-        
-        let iId = $(this).children(":nth-child(1)").text();
-        console.log(iId);
+function doubleCLickDeleteItem() {
+    $("#iTbody tr").dblclick(function () {
 
-        let confirmation = confirm("Do you really want to delete this Item?")
-        if (confirmation) {
-            for(let i=0; i<itemDB.length; i++){
-                if(itemDB[i].id == iId.trim()){
-                    console.log(itemDB);
-                    itemDB.splice(i,1);
-                    $(this).children().remove();
-                    clearItemInputFields();
-                    
-                }       
+        let iId = $(this).children(":nth-child(1)").text();
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You are about to delete this record!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Close'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                deleteItem(iId);
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                Swal.fire('Cancelled', 'Your record is safe :)', 'info');
             }
-        }
+        });
 
     })
 }
 
+
+$(".searchItem").on("input", function () {
+
+    let name = $("#searchTxt").val();
+
+    $.ajax({
+        url: "http://localhost:8080/pos/customer?name=" + name + "&method=search",
+        method: "GET",
+
+        success: function (response) {
+            console.log(response);
+            setDataToLiveTableSearch(response)
+
+        },
+        error: function (jqXHR) {
+            console.log(jqXHR);
+
+        }
+
+    })
+})
 
 $("#clearItemBTn").click(function(){
     clearItemInputFields();

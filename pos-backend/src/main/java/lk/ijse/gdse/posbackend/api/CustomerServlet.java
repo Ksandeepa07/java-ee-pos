@@ -18,7 +18,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-@WebServlet(name = "customer", value = "/customer")
+@WebServlet(name = "customer", urlPatterns = "/customer")
 public class CustomerServlet extends HttpServlet {
 
     DataSource pool;
@@ -42,7 +42,7 @@ public class CustomerServlet extends HttpServlet {
 
             CustomerDTO customerDTO = JsonbBuilder.create().fromJson(req.getReader(), CustomerDTO.class);
             CustomerDTO searchCustomer = customerBO.searchCustomer(connection, customerDTO.getId());
-            System.out.println("ddd" + searchCustomer);
+//            System.out.println("ddd" + searchCustomer);
 
             if (searchCustomer != null) {
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
@@ -64,13 +64,13 @@ public class CustomerServlet extends HttpServlet {
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        System.out.println("tyoe" + request.getParameter("method"));
+//        System.out.println("tyoe" + request.getParameter("method"));
 
         if (request.getParameter("method").equals("getAll")) {
             try (Connection connection = pool.getConnection()) {
                 ArrayList<CustomerDTO> allCustomers = customerBO.getAllCustomers(connection);
                 if (allCustomers != null) {
-                    System.out.println(allCustomers);
+//                    System.out.println(allCustomers);
                     response.setContentType("application/json");
                     response.setStatus(HttpServletResponse.SC_CREATED);
                     response.getWriter().write(JsonbBuilder.create().toJson(allCustomers));
@@ -89,7 +89,7 @@ public class CustomerServlet extends HttpServlet {
                 ArrayList<CustomerDTO> customerDTOS = customerBO.liveSearch(connection, request.getParameter("name"));
                 response.setContentType("application/json");
                 response.getWriter().write(JsonbBuilder.create().toJson(customerDTOS));
-                System.out.println(customerDTOS);
+//                System.out.println(customerDTOS);
 
             } catch (Exception e) {
                 System.out.println(e);

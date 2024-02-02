@@ -2,7 +2,7 @@ package lk.ijse.gdse.posbackend.dao;
 
 import java.util.ArrayList;
 
-public interface CrudDAO <T,C,ID>{
+public interface CrudDAO <T,C,ID> extends SuperDAO{
     boolean save(T t,C c);
     boolean update(T t,C c);
     boolean delete(ID id,C c);
