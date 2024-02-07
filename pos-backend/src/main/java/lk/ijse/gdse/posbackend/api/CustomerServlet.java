@@ -4,6 +4,7 @@ import jakarta.json.bind.JsonbBuilder;
 import lk.ijse.gdse.posbackend.bo.BOFactory;
 import lk.ijse.gdse.posbackend.bo.custom.impl.CustomerBOImpl;
 import lk.ijse.gdse.posbackend.dto.CustomerDTO;
+import lk.ijse.gdse.posbackend.util.DataValidateController;
 import org.w3c.dom.ls.LSOutput;
 
 import javax.naming.InitialContext;
@@ -41,36 +42,70 @@ public class CustomerServlet extends HttpServlet {
         try (Connection connection = pool.getConnection()) {
 
             CustomerDTO customerDTO = JsonbBuilder.create().fromJson(req.getReader(), CustomerDTO.class);
-            CustomerDTO searchCustomer = customerBO.searchCustomer(connection, customerDTO.getId());
-//            System.out.println("ddd" + searchCustomer);
 
-            if (searchCustomer != null) {
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+            if (customerDTO.getId()!=null && customerDTO.getName()!=null && customerDTO.getAddress()!=null && customerDTO.getSalary()!=null){
+                if(DataValidateController.customerIdValidate(customerDTO.getId())){
 
-            } else {
-                if (customerBO.saveCustomer(customerDTO, connection)) {
-                    resp.setStatus(HttpServletResponse.SC_CREATED);
-                    resp.getWriter().write("Customer saved successfully !!");
-                } else {
+                    if(DataValidateController.customerNameValidate(customerDTO.getName())){
+                        if (DataValidateController.customerAddressValidate(customerDTO.getAddress())){
+
+                            if (DataValidateController.customerSalaryValidate(customerDTO.getSalary())){
+
+                                CustomerDTO searchCustomer = customerBO.searchCustomer(connection, customerDTO.getId());
+
+                                if (searchCustomer != null) {
+                                    resp.getWriter().write("Customer Id Already exits !!");
+                                    resp.setStatus(HttpServletResponse.SC_CONFLICT);
+
+                                } else {
+                                    if (customerBO.saveCustomer(customerDTO, connection)) {
+                                        resp.setStatus(HttpServletResponse.SC_CREATED);
+                                        resp.getWriter().write("Customer saved successfully !!");
+                                    } else {
+                                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                        resp.getWriter().write("Failed to save customer !!");
+                                    }
+                                }
+
+                            }else {
+                                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                resp.getWriter().write("Customer salary doesn't match !!");
+                            }
+
+                        }else {
+                            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                            resp.getWriter().write("Customer address doesn't match !!");
+                        }
+
+                    }else{
+                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        resp.getWriter().write("Customer name doesn't match !!");
+                    }
+
+                }else{
                     resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    resp.getWriter().write("Failed to save customer !!");
+                    resp.getWriter().write("Customer Id doesn't match !!");
                 }
+
+            }else {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("NO Data to proceed !!");
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+            resp.getWriter().write("Server Error");
+            System.out.println(e);
         }
 
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-//        System.out.println("tyoe" + request.getParameter("method"));
 
         if (request.getParameter("method").equals("getAll")) {
             try (Connection connection = pool.getConnection()) {
                 ArrayList<CustomerDTO> allCustomers = customerBO.getAllCustomers(connection);
                 if (allCustomers != null) {
-//                    System.out.println(allCustomers);
                     response.setContentType("application/json");
                     response.setStatus(HttpServletResponse.SC_CREATED);
                     response.getWriter().write(JsonbBuilder.create().toJson(allCustomers));
@@ -84,7 +119,7 @@ public class CustomerServlet extends HttpServlet {
             }
 
         } else if (request.getParameter("method").equals("search")) {
-            System.out.println(request.getParameter("name"));
+//            System.out.println(request.getParameter("name"));
             try (Connection connection = pool.getConnection()) {
                 ArrayList<CustomerDTO> customerDTOS = customerBO.liveSearch(connection, request.getParameter("name"));
                 response.setContentType("application/json");
@@ -101,26 +136,39 @@ public class CustomerServlet extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try (Connection connection = pool.getConnection()) {
-            System.out.println(req.getParameter("id"));
+//            System.out.println("id"+req.getParameter("id"));
 
-            CustomerDTO searchCustomer = customerBO.searchCustomer(connection, req.getParameter("id"));
-            System.out.println("ddd" + searchCustomer);
-
-            if (searchCustomer != null) {
-                if (customerBO.deleteCustomer(req.getParameter("id"), connection)) {
-                    resp.setStatus(HttpServletResponse.SC_CREATED);
-                    resp.getWriter().write("Customer Deleted successfully !!");
-                } else {
-                    resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
-                    resp.getWriter().write("Failed to delete customer !!");
-                }
-
-            } else {
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+            if (req.getParameter("id")==null || req.getParameter("id").isEmpty()){
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("NO Data TO Proceed !!");
+                return;
             }
 
+           if (DataValidateController.customerIdValidate(req.getParameter("id"))){
+               CustomerDTO searchCustomer = customerBO.searchCustomer(connection, req.getParameter("id"));
+               System.out.println("ddd" + searchCustomer);
+
+               if (searchCustomer != null) {
+                   if (customerBO.deleteCustomer(req.getParameter("id"), connection)) {
+                       resp.setStatus(HttpServletResponse.SC_CREATED);
+                       resp.getWriter().write("Customer Deleted successfully !!");
+                   } else {
+                       resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+                       resp.getWriter().write("Failed to delete customer !!");
+                   }
+
+               } else {
+                   resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                   resp.getWriter().write("This Customer id doesn't exits  !!");
+               }
+           }else {
+               resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+               resp.getWriter().write("Customer Id doesn't match !!");
+           }
         } catch (Exception e) {
             System.out.println(e);
+            resp.getWriter().write(HttpServletResponse.SC_BAD_GATEWAY);
+            resp.getWriter().write("Server Error !!");
         }
 
     }
@@ -131,24 +179,59 @@ public class CustomerServlet extends HttpServlet {
             CustomerDTO customerDTO = JsonbBuilder.create().fromJson(req.getReader(), CustomerDTO.class);
             System.out.println("update"+customerDTO);
 
-            CustomerDTO searchCustomer = customerBO.searchCustomer(connection, customerDTO.getId());
+            if (customerDTO.getId()!=null && customerDTO.getName()!=null && customerDTO.getAddress()!=null && customerDTO.getSalary()!=null){
 
-            if(searchCustomer!=null){
-                if( customerBO.updateCustomer(customerDTO,connection)){
-                    resp.setStatus(HttpServletResponse.SC_CREATED);
-                    resp.getWriter().write("Customer updated successfully !!");
+                if (DataValidateController.customerIdValidate(customerDTO.getId())){
+
+                    if(DataValidateController.customerNameValidate(customerDTO.getName())){
+
+                        if (DataValidateController.customerAddressValidate(customerDTO.getAddress())){
+
+                            if (DataValidateController.customerSalaryValidate(customerDTO.getSalary())){
+
+                                CustomerDTO searchCustomer = customerBO.searchCustomer(connection, customerDTO.getId());
+
+                                if(searchCustomer!=null){
+                                    if( customerBO.updateCustomer(customerDTO,connection)){
+                                        resp.setStatus(HttpServletResponse.SC_CREATED);
+                                        resp.getWriter().write("Customer updated successfully !!");
+                                    }else{
+                                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                        resp.getWriter().write("Failed to update customer !!");
+                                    }
+                                }else{
+                                    resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                                    resp.getWriter().write("This Customer id doesn't exits  !!");
+                                }
+
+                            }else {
+                                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                                resp.getWriter().write("This Customer salary doesn't match  !!");
+                            }
+
+                        }else {
+                            resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                            resp.getWriter().write("This Customer address doesn't match  !!");
+                        }
+                    }else {
+                        resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                        resp.getWriter().write("This Customer name doesn't match  !!");
+                    }
+
                 }else{
-                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    resp.getWriter().write("Failed to update customer !!");
+                    resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                    resp.getWriter().write("This Customer id doesn't match  !!");
                 }
-            }else{
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
-            }
 
+            }else{
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("NO Data to proceed !!");
+            }
 
         }catch (Exception e){
             System.out.println(e);
             resp.getWriter().write(HttpServletResponse.SC_BAD_GATEWAY);
+            resp.getWriter().write("Server Error !!");
         }
 
     }

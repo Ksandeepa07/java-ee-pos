@@ -69,7 +69,7 @@ public class CustomerDAOImpl implements CustomerDAO {
                     ));
                 }
             }
-            System.out.println(list);
+            System.out.println("working"+list);
             return list;
 
         } catch (Exception e) {

@@ -1,11 +1,8 @@
 // const CUS_ID_REGEX = /^(C00-)[0-9]{3}$/;
 const CUS_ID_REGEX = /^C\d{3}$/;
-
 const CUS_NAME_REGEX = /^[A-Za-z ]{5,}$/;
 const CUS_ADDRESS_REGEX = /^[A-Za-z0-9 ]{8,}$/;
 const CUS_SALARY_REGEX = /^\d+(\.\d{1,2})?$/;
-// const CUS_CONTACT_REGEX = /^(?:7|0|(?:\\\\\\\\+94))[0-9]{9,10}$/;
-const CUS_EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/;
 
 let cValidation=new Array();
 cValidation.push({field:$("#cId"),regEx: CUS_ID_REGEX});

@@ -39,14 +39,11 @@ public class ItemServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        System.out.println(req.getParameter("method"));
         if (req.getParameter("method").equals("getAll")) {
             try (Connection connection = pool.getConnection()) {
                 ArrayList<ItemDTO> allItems = itemBO.getAllItems(connection);
-                System.out.println("b " + allItems);
 
                 if (allItems != null) {
-                    System.out.println(allItems);
                     resp.setContentType("application/json");
                     resp.setStatus(HttpServletResponse.SC_CREATED);
                     resp.getWriter().write(JsonbBuilder.create().toJson(allItems));
@@ -60,12 +57,10 @@ public class ItemServlet extends HttpServlet {
             }
 
         }else if(req.getParameter("method").equals("search")){
-            System.out.println(req.getParameter("name"));
             try (Connection connection = pool.getConnection()) {
                 ArrayList<ItemDTO> itemDTOS = itemBO.liveSearch(connection, req.getParameter("name"));
                 resp.setContentType("application/json");
                 resp.getWriter().write(JsonbBuilder.create().toJson(itemDTOS));
-//                System.out.println(customerDTOS);
 
             } catch (Exception e) {
                 System.out.println(e);
@@ -81,20 +76,27 @@ public class ItemServlet extends HttpServlet {
             ItemDTO itemDTO = JsonbBuilder.create().fromJson(req.getReader(), ItemDTO.class);
             ItemDTO searchItem = itemBO.searchItem(connection, itemDTO.getId());
 
-            if (searchItem != null) {
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
-
-            } else {
-                if (itemBO.saveItem(itemDTO, connection)) {
-                    resp.setStatus(HttpServletResponse.SC_CREATED);
-                    resp.getWriter().write("Item saved successfully !!");
+            if(itemDTO.getId()!=null && itemDTO.getName()!=null && itemDTO.getType()!=null && itemDTO.getPrice()!=0 && itemDTO.getQty()!=0){
+                if (searchItem != null) {
+                    resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                    resp.getWriter().write("Item Id Already exits !!");
 
                 } else {
-                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    resp.getWriter().write("Failed to save item !!");
-                }
+                    if (itemBO.saveItem(itemDTO, connection)) {
+                        resp.setStatus(HttpServletResponse.SC_CREATED);
+                        resp.getWriter().write("Item saved successfully !!");
 
+                    } else {
+                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        resp.getWriter().write("Failed to save item !!");
+                    }
+
+                }
+            }else{
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("NO Data to proceed !!");
             }
+
 
         } catch (Exception e) {
             System.out.println(e);
@@ -108,8 +110,16 @@ public class ItemServlet extends HttpServlet {
         try (Connection connection = pool.getConnection()) {
             System.out.println(req.getParameter("id"));
 
+
+            if (req.getParameter("id")==null || req.getParameter("id").isEmpty()){
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("NO Data TO Proceed !!");
+                return;
+            }
+
             ItemDTO searchItem = itemBO.searchItem(connection, req.getParameter("id"));
             System.out.println("delete search" + searchItem);
+
 
             if (searchItem != null) {
                 if (itemBO.deleteItem(req.getParameter("id"), connection)) {
@@ -122,6 +132,7 @@ public class ItemServlet extends HttpServlet {
 
             } else {
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                resp.getWriter().write("Item Id doesn't exits !!");
             }
 
         } catch (Exception e) {
@@ -135,18 +146,24 @@ public class ItemServlet extends HttpServlet {
             ItemDTO itemDTO = JsonbBuilder.create().fromJson(req.getReader(), ItemDTO.class);
             System.out.println("update "+itemDTO);
 
-            ItemDTO searchItem = itemBO.searchItem(connection, itemDTO.getId());
-
-            if(searchItem!=null){
-                if( itemBO.updateItem(itemDTO,connection)){
-                    resp.setStatus(HttpServletResponse.SC_CREATED);
-                    resp.getWriter().write("Item updated successfully !!");
+            if(itemDTO.getId()!=null && itemDTO.getName()!=null && itemDTO.getType()!=null && itemDTO.getPrice()!=0 && itemDTO.getQty()!=0) {
+                ItemDTO searchItem = itemBO.searchItem(connection, itemDTO.getId());
+                if(searchItem!=null){
+                    if( itemBO.updateItem(itemDTO,connection)){
+                        resp.setStatus(HttpServletResponse.SC_CREATED);
+                        resp.getWriter().write("Item updated successfully !!");
+                    }else{
+                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        resp.getWriter().write("Failed to update item !!");
+                    }
                 }else{
-                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    resp.getWriter().write("Failed to update item !!");
+                    resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                    resp.getWriter().write("Item Id dosen't exits !!");
                 }
+
             }else{
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("NO Data to proceed !!");
             }
 
 

@@ -1,46 +1,109 @@
 
 let addToCartArray = [];
-let newTotal = 0;;
+let newTotal = 0;
 let total;
 
-$("#orderId").val(splitOrderId(orderDB[orderDB.length - 1]));
+window.onload = function() {
+    loadCustomerIds();
+    loadItemIds();
+};
+
+// $("#orderId").val(splitOrderId(orderDB[orderDB.length - 1]));
 
 function loadCustomerIds() {
     $("#customerIdCmb").empty();
-    for (let i = 0; i < customerDB.length; i++) {
-        console.log(customerDB[i].id);
-        let option = `<option>${customerDB[i].id}</option>`;
-        $("#customerIdCmb").append(option);
-    }
+    $.ajax({
+        url: "http://localhost:8080/pos/placeOrder?option=customer",
+        method: "GET",
+        contentType: "application/json",
+        success: function (response) {
+            console.log(response);
+
+            for (const customerIds of response) {
+                let data=`<option>${customerIds.id}</option>`;
+                $("#customerIdCmb").append(data);
+
+            }
+
+        },
+        error: function (jqXHR) {
+            console.log(jqXHR);
+        }
+
+    })
+
 }
-
-$("#customerIdCmb").click(function () {
-    console.log($("#customerIdCmb").val());
-
-    let customer = searchCustomer($("#customerIdCmb").val());
-    $("#cmbCustomerName").val(customer.name);
-    $("#cmbCustomerContact").val(customer.contact);
-    $("#cmbCustomerEmail").val(customer.email);
-})
 
 function loadItemIds() {
     $("#itemIdCmb").empty();
-    for (let i = 0; i < itemDB.length; i++) {
-        let option = `<option>${itemDB[i].id}</option>`;
-        $("#itemIdCmb").append(option);
-    }
+
+    $.ajax({
+        url: "http://localhost:8080/pos/placeOrder?option=item",
+        method: "GET",
+        contentType: "application/json",
+        success: function (response) {
+            console.log(response);
+
+            for (const customerIds of response) {
+                let data=`<option>${customerIds.id}</option>`;
+                $("#itemIdCmb").append(data);
+
+            }
+
+        },
+        error: function (jqXHR) {
+            console.log(jqXHR);
+        }
+
+    })
+
 
 }
 
+$("#customerIdCmb").click(function () {
+  let id=  $("#customerIdCmb").val();
+    $.ajax({
+        url: "http://localhost:8080/pos/placeOrder?option=customerSearch&id="+id,
+        method: "GET",
+        contentType: "application/json",
+        success: function (response) {
+            console.log(response);
+            $("#cmbCustomerName").val(response.name);
+            $("#cmbCustomerContact").val(response.address);
+            $("#cmbCustomerEmail").val(response.salary);
+        },
+        error: function (jqXHR) {
+            console.log(jqXHR);
+        }
+
+    })
+})
+
 $("#itemIdCmb").click(function () {
-    let item = searchItem($("#itemIdCmb").val());
-    $("#itemNameCmb").val(item.name);
-    $("#itemPriceCmb").val(item.unitPrice);
-    // $("#itemNameCmb").val(item.name);
-    $("#itemTypeCmb").val(item.type);
-    // $("#itemQtyCmb").val(item.qty);
+
+    let id=$("#itemIdCmb").val();
+    console.log(id)
+
+    $.ajax({
+        url: "http://localhost:8080/pos/placeOrder?option=itemSearch&id="+id,
+        method: "GET",
+        contentType: "application/json",
+        success: function (response) {
+            console.log(response);
+
+            $("#itemNameCmb").val(response.name);
+            $("#itemPriceCmb").val(response.price);
+            $("#itemTypeCmb").val(response.type);
+            $("#itemQtyCmb").val(response.qty);
+        },
+        error: function (jqXHR) {
+            console.log(jqXHR);
+        }
+
+    })
 
 })
+
 
 
 
@@ -59,15 +122,7 @@ $("#addToCart").click(function () {
             });
 
         } else {
-            let item = searchItem($("#itemIdCmb").val());
-            console.log(item.qty);
-            if (parseInt($("#itemQtyCmb").val().trim()) <= parseInt(item.qty)) {
                 setPlaceOrderDetails();
-
-            } else {
-                alert("not sufficient qty !");
-            }
-
 
         }
 
@@ -111,56 +166,39 @@ function setPlaceOrderDetails() {
     if (addToCartArray.length === 0) {
         // console.log('this is lenth', addToCartArray.length);
         addToCartArray.push(cartDetails);
+        console.log("this iss", addToCartArray);
 
     } else {
         for (let i = 0; i < addToCartArray.length; i++) {
             if (addToCartArray[i].cartItemId === $("#itemIdCmb").val()) {
-                alert("no you cant");
-                let NeworderDetails = searchOrder(addToCartArray[i].cartItemId);
+                let newCartDetails = searchOrder(addToCartArray[i].cartItemId);
 
-                NeworderDetails.cartItemQty = parseInt($("#itemQtyCmb").val()) + parseInt(addToCartArray[i].cartItemQty);
-                NeworderDetails.cartItemTotal = (parseFloat($("#itemPriceCmb").val()) * parseFloat($("#itemQtyCmb").val()) + parseFloat(addToCartArray[i].cartItemTotal));
+                newCartDetails.cartItemQty = parseInt($("#itemQtyCmb").val()) + parseInt(addToCartArray[i].cartItemQty);
+                newCartDetails.cartItemTotal = (parseFloat($("#itemPriceCmb").val()) * parseFloat($("#itemQtyCmb").val()) + parseFloat(addToCartArray[i].cartItemTotal));
                 // console.log("new qty",parseInt($("#itemQtyCmb").val())+parseInt(addToCartArray[i].cartItemQty));
                 getCartData();
                 calculateNetTotal();
+                console.log(addToCartArray);
 
                 // console.log(NeworderDetails.cartItemName );
                 return;
             }
         }
 
-        // console.log("this is cartd",addToCartArray[i].cartItemId);
-        // console.log("this is cmbID",$("#itemIdCmb").val());
         addToCartArray.push(cartDetails);
-        // console.log("this is", addToCartArray);
-
-
+        console.log("this is", addToCartArray);
 
     }
-
-
-
-
 
     getCartData();
-
     calculateNetTotal();
-
-}
-
-function calculateNetTotal() {
-    newTotal = 0;
-    for (let i = 0; i < addToCartArray.length; i++) {
-        newTotal = newTotal + addToCartArray[i].cartItemTotal;
-    }
-    $("#totalSpan").text(newTotal);
 
 }
 
 function getCartData() {
     $("#placeOrderTbody").empty();
     for (let i = 0; i < addToCartArray.length; i++) {
-        let tRow = `<tr>  <td>${addToCartArray[i].cartItemId}</td>
+        let tRow = `<tr> <td>${addToCartArray[i].cartItemId}</td>
         <td>${addToCartArray[i].cartItemName}</td>
     <td>${addToCartArray[i].cartItemPrice}</td>
     <td>${addToCartArray[i].cartItemQty}</td>
@@ -169,6 +207,16 @@ function getCartData() {
         $("#placeOrderTbody").append(tRow);
 
     }
+
+}
+
+function calculateNetTotal() {
+    newTotal = 0;
+    for (let i = 0; i < addToCartArray.length; i++) {
+        newTotal = newTotal + addToCartArray[i].cartItemTotal;
+    }
+    console.log("total is"+newTotal)
+    $("#totalSpan").text(newTotal);
 
 }
 
@@ -191,16 +239,43 @@ $("#payment").on("keydown keyup", function (e) {
 })
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 $("#placeOrderBtn").click(function () {
     let newOrderDetails = Object.assign({}, orderDetails);
     let newOrder = Object.assign({}, order);
-    console.log($("#customerIdCmb ").val());
+    newOrder = {
+        orderId: $("#orderId").val(),
+        customerId: $("#customerIdCmb").val(),
+        date: $("#date").val(),
+        orderDetailsList: [] // Initialize orderDetailsList as an empty array
+    };
+
 
     if ($("#customerIdCmb ").val() === null | $("#payment").val().length === 0 | $("#itemIdCmb ").val() === null |
         $("#itemQtyCmb").val().length === 0) {
         alert("please fill all empty fields !")
     } else {
         if ($("#balance").val() >= 0) {
+
             for (let i = 0; i < addToCartArray.length; i++) {
                 newOrderDetails = {
                     orderId: $("#orderId").val(),
@@ -208,32 +283,54 @@ $("#placeOrderBtn").click(function () {
                     qty: addToCartArray[i].cartItemQty,
                     total: addToCartArray[i].cartItemTotal
                 }
-                newOrder.orderDetails.push(newOrderDetails);
-                console.log("order detail", newOrderDetails);
+                newOrder.orderDetailsList.push(newOrderDetails);
+                console.log("order detail ", newOrderDetails);
+                console.log("Border "+newOrder)
 
             }
+            
+            console.log("ou "+newOrder.orderId)
+            console.log("cu "+newOrder.customerId)
+            console.log("da "+newOrder.date)
+            console.log("chekc "+newOrder.orderDetailsList)
+
+            let jsonData=JSON.stringify(newOrder);
+            console.log(jsonData)
 
             /* set data to order */
 
-            newOrder = {
-                orderId: $("#orderId").val(),
-                custId: $("#customerIdCmb").val(),
-                orderDate: $("#date").val()
-            }
-            orderDB.push(newOrder);
+            $.ajax({
+                url: "http://localhost:8080/pos/placeOrder",
+                method: "POST",
+                contentType: "application/json",
+                data: jsonData,
 
-            // console.log("order", order);
-            // console.log("befor", addToCartArray);
+                success: function (response) {
+                    console.log(response);
+
+                    Swal.fire(
+                        'Order Saved Successfully',
+                        'Order has been Placed successfully..!',
+                        'success'
+                    )
+
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+                    Swal.fire(
+                        'process failed',
+                        'Order placed failed..!',
+                        'error'
+                    )
+                }
+            })
+
+
             addToCartArray = [];
-            console.log("after", addToCartArray);
+
             $("#placeOrderTbody").empty();
 
-            $("#orderId").val(splitOrderId(orderDB[orderDB.length - 1].orderId));
-            Swal.fire(
-                'Order Saved Sucessfully',
-                'Order has been Placed sucessfully..!',
-                'success'
-            )
+            // $("#orderId").val(splitOrderId(orderDB[orderDB.length - 1].orderId));
 
         } else {
             Swal.fire(
@@ -248,6 +345,11 @@ $("#placeOrderBtn").click(function () {
 
 
 })
+
+
+
+
+
 
 
 
@@ -269,10 +371,5 @@ function searchOrder(id) {
 
 }
 
-
-
-// function clearPlaceOrderFields(){
-
-// }
 
 

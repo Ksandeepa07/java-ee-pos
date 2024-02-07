@@ -41,8 +41,8 @@ public class CustomerBOImpl implements CustomerBO<CustomerDTO, Connection, Strin
 
     @Override
     public ArrayList<CustomerDTO> getAllCustomers(Connection connection) {
-        ArrayList<CustomerDTO> dtoArrayList = new ArrayList<>();
         ArrayList<Customer> all = customerDAO.getAll(connection);
+        ArrayList<CustomerDTO> dtoArrayList = new ArrayList<>();
 
         for (Customer customer : all) {
             dtoArrayList.add(new CustomerDTO(
@@ -52,6 +52,7 @@ public class CustomerBOImpl implements CustomerBO<CustomerDTO, Connection, Strin
                     customer.getSalary()
             ));
         }
+        System.out.println("dtoListtt "+dtoArrayList);
         return dtoArrayList;
 
     }
