@@ -1,4 +1,4 @@
-![Screenshot from 2024-02-08 12-39-20](https://github.com/Ksandeepa07/java-ee-pos/assets/126963748/c4d7ccb9-fbd5-427b-9fe0-551dac7f5e33)
+
 # Point of Sale (POS) System
 
 
