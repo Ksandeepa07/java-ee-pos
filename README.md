@@ -1,4 +1,4 @@
-
+![Screenshot from 2024-02-08 12-39-20](https://github.com/Ksandeepa07/java-ee-pos/assets/126963748/c4d7ccb9-fbd5-427b-9fe0-551dac7f5e33)
 # Point of Sale (POS) System
 
 
@@ -24,6 +24,10 @@ This is a Point of Sale (POS) system designed to streamline transactions and man
 ## License
 
 This project is licensed under the [MIT](https://choosealicense.com/licenses/mit/)
+
+## Screenshots
+![Screenshot from 2024-02-08 12-39-20](https://github.com/Ksandeepa07/java-ee-pos/assets/126963748/dd9879fe-c3cc-4da5-93b4-28d7e8a4de40)
+
 
 
 ## Installation
