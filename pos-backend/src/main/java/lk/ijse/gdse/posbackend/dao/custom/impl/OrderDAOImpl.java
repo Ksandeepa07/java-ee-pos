@@ -1,10 +1,13 @@
 package lk.ijse.gdse.posbackend.dao.custom.impl;
 
+import lk.ijse.gdse.posbackend.dao.CrudDAO;
 import lk.ijse.gdse.posbackend.dao.custom.OrderDAO;
+import lk.ijse.gdse.posbackend.entity.Customer;
 import lk.ijse.gdse.posbackend.entity.Order;
 import lk.ijse.gdse.posbackend.util.CrudUtil;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -41,6 +44,26 @@ public class OrderDAOImpl implements OrderDAO {
 
     @Override
     public Order search(Connection connection, String s) {
+        return null;
+    }
+
+    @Override
+    public Order generateNextOrderId(Connection connection) {
+
+        try {
+
+            String sql="SELECT orderId,customerId,date FROM orders ORDER BY orderId DESC LIMIT 1";
+            ResultSet resultSet= CrudUtil.execute(sql,connection);
+            if (resultSet.next()){
+                return new Order(
+                        resultSet.getString(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3)
+                );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         return null;
     }
 }

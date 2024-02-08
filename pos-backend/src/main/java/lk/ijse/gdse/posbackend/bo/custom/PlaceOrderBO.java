@@ -14,4 +14,6 @@ public interface PlaceOrderBO <Cu,I,O,C,ID> extends SuperBO {
    I searchItem(C c,ID id);
     boolean placeOrder(O o,C c);
 
+    O generateNextOrderId(C c);
+
 }

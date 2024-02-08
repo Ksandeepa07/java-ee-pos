@@ -147,5 +147,15 @@ public class PlaceOrderBOImpl implements PlaceOrderBO<CustomerDTO, ItemDTO, Orde
 
     }
 
+    @Override
+    public OrderDTO generateNextOrderId(Connection connection) {
+        Order order = orderDAO.generateNextOrderId(connection);
+        return new OrderDTO(
+                order.getOrderId(),
+                order.getCustomerId(),
+                order.getDate()
+        );
+    }
+
 }
 

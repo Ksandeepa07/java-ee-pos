@@ -3,12 +3,10 @@ package lk.ijse.gdse.posbackend.api;
 import jakarta.json.bind.JsonbBuilder;
 import lk.ijse.gdse.posbackend.bo.BOFactory;
 import lk.ijse.gdse.posbackend.bo.custom.impl.ItemBOImpl;
-import lk.ijse.gdse.posbackend.dao.custom.impl.ItemDAOImpl;
-import lk.ijse.gdse.posbackend.dto.CustomerDTO;
 import lk.ijse.gdse.posbackend.dto.ItemDTO;
+import lk.ijse.gdse.posbackend.util.DataValidateController;
 
 import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -19,7 +17,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
 
-@WebServlet(name = "item",urlPatterns = "/item")
+@WebServlet(name = "item", urlPatterns = "/item")
 public class ItemServlet extends HttpServlet {
 
     DataSource pool;
@@ -56,7 +54,7 @@ public class ItemServlet extends HttpServlet {
                 System.out.println(e);
             }
 
-        }else if(req.getParameter("method").equals("search")){
+        } else if (req.getParameter("method").equals("search")) {
             try (Connection connection = pool.getConnection()) {
                 ArrayList<ItemDTO> itemDTOS = itemBO.liveSearch(connection, req.getParameter("name"));
                 resp.setContentType("application/json");
@@ -73,26 +71,52 @@ public class ItemServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         try (Connection connection = pool.getConnection()) {
+
             ItemDTO itemDTO = JsonbBuilder.create().fromJson(req.getReader(), ItemDTO.class);
-            ItemDTO searchItem = itemBO.searchItem(connection, itemDTO.getId());
 
-            if(itemDTO.getId()!=null && itemDTO.getName()!=null && itemDTO.getType()!=null && itemDTO.getPrice()!=0 && itemDTO.getQty()!=0){
-                if (searchItem != null) {
-                    resp.setStatus(HttpServletResponse.SC_CONFLICT);
-                    resp.getWriter().write("Item Id Already exits !!");
+            double neww = itemDTO.getPrice();
 
-                } else {
-                    if (itemBO.saveItem(itemDTO, connection)) {
-                        resp.setStatus(HttpServletResponse.SC_CREATED);
-                        resp.getWriter().write("Item saved successfully !!");
+            if (itemDTO.getId() != null && itemDTO.getName() != null && itemDTO.getType() != null) {
+                if (DataValidateController.itemIdValidate(itemDTO.getId())) {
 
+                    if (DataValidateController.itemNameValidate(itemDTO.getName())) {
+                        if (DataValidateController.itemTypeValidate(itemDTO.getType())) {
+
+                            ItemDTO searchItem = itemBO.searchItem(connection, itemDTO.getId());
+
+
+                            if (searchItem != null) {
+                                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                                resp.getWriter().write("Item Id Already exits !!");
+
+                            } else {
+                                if (itemBO.saveItem(itemDTO, connection)) {
+                                    resp.setStatus(HttpServletResponse.SC_CREATED);
+                                    resp.getWriter().write("Item saved successfully !!");
+
+                                } else {
+                                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                    resp.getWriter().write("Failed to save item !!");
+                                }
+
+                            }
+
+                        } else {
+                            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                            resp.getWriter().write("Item type doesn't match !!");
+
+                        }
                     } else {
                         resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        resp.getWriter().write("Failed to save item !!");
+                        resp.getWriter().write("Item name doesn't match !!");
+
                     }
 
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    resp.getWriter().write("Item id doesn't match !!");
                 }
-            }else{
+            } else {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 resp.getWriter().write("NO Data to proceed !!");
             }
@@ -111,29 +135,34 @@ public class ItemServlet extends HttpServlet {
             System.out.println(req.getParameter("id"));
 
 
-            if (req.getParameter("id")==null || req.getParameter("id").isEmpty()){
+            if (req.getParameter("id") == null || req.getParameter("id").isEmpty()) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 resp.getWriter().write("NO Data TO Proceed !!");
                 return;
             }
 
-            ItemDTO searchItem = itemBO.searchItem(connection, req.getParameter("id"));
-            System.out.println("delete search" + searchItem);
 
+            if (DataValidateController.itemIdValidate(req.getParameter("id"))) {
+                ItemDTO searchItem = itemBO.searchItem(connection, req.getParameter("id"));
+                System.out.println("delete search" + searchItem);
+                if (searchItem != null) {
+                    if (itemBO.deleteItem(req.getParameter("id"), connection)) {
+                        resp.setStatus(HttpServletResponse.SC_CREATED);
+                        resp.getWriter().write("Item Deleted successfully !!");
+                    } else {
+                        resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+                        resp.getWriter().write("Failed to delete item !!");
+                    }
 
-            if (searchItem != null) {
-                if (itemBO.deleteItem(req.getParameter("id"), connection)) {
-                    resp.setStatus(HttpServletResponse.SC_CREATED);
-                    resp.getWriter().write("Item Deleted successfully !!");
                 } else {
-                    resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
-                    resp.getWriter().write("Failed to delete item !!");
+                    resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                    resp.getWriter().write("Item Id doesn't exits !!");
                 }
-
             } else {
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
-                resp.getWriter().write("Item Id doesn't exits !!");
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("Item id doesn't match !!");
             }
+
 
         } catch (Exception e) {
             System.out.println(e);
@@ -142,32 +171,56 @@ public class ItemServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        try(Connection connection=pool.getConnection()){
+        try (Connection connection = pool.getConnection()) {
             ItemDTO itemDTO = JsonbBuilder.create().fromJson(req.getReader(), ItemDTO.class);
-            System.out.println("update "+itemDTO);
+            System.out.println("update " + itemDTO);
 
-            if(itemDTO.getId()!=null && itemDTO.getName()!=null && itemDTO.getType()!=null && itemDTO.getPrice()!=0 && itemDTO.getQty()!=0) {
-                ItemDTO searchItem = itemBO.searchItem(connection, itemDTO.getId());
-                if(searchItem!=null){
-                    if( itemBO.updateItem(itemDTO,connection)){
-                        resp.setStatus(HttpServletResponse.SC_CREATED);
-                        resp.getWriter().write("Item updated successfully !!");
-                    }else{
+            if (itemDTO.getId() != null && itemDTO.getName() != null && itemDTO.getType() != null && itemDTO.getPrice() != 0 && itemDTO.getQty() != 0) {
+                if (DataValidateController.itemIdValidate(itemDTO.getId())) {
+
+                    if (DataValidateController.itemNameValidate(itemDTO.getName())) {
+
+                        if (DataValidateController.itemTypeValidate(itemDTO.getType())) {
+
+                            ItemDTO searchItem = itemBO.searchItem(connection, itemDTO.getId());
+
+                            if (searchItem != null) {
+                                if (itemBO.updateItem(itemDTO, connection)) {
+                                    resp.setStatus(HttpServletResponse.SC_CREATED);
+                                    resp.getWriter().write("Item updated successfully !!");
+
+                                } else {
+                                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                    resp.getWriter().write("Failed to update item !!");
+                                }
+
+                            } else {
+                                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                                resp.getWriter().write("Item Id doesn't exits !!");
+                            }
+
+                        } else {
+                            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                            resp.getWriter().write("Item type doesn't match !!");
+                        }
+
+                    } else {
                         resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        resp.getWriter().write("Failed to update item !!");
+                        resp.getWriter().write("Item name doesn't match !!");
                     }
-                }else{
-                    resp.setStatus(HttpServletResponse.SC_CONFLICT);
-                    resp.getWriter().write("Item Id dosen't exits !!");
+
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    resp.getWriter().write("Item id doesn't match !!");
                 }
 
-            }else{
+            } else {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 resp.getWriter().write("NO Data to proceed !!");
             }
 
 
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e);
             resp.getWriter().write(HttpServletResponse.SC_BAD_GATEWAY);
         }

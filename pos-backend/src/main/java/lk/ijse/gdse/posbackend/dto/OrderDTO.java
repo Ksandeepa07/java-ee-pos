@@ -15,4 +15,10 @@ public class OrderDTO {
     private String customerId;
     private String date;
     private ArrayList <OrderDetailsDTO> orderDetailsList;
+
+    public OrderDTO(String orderId, String customerId, String date) {
+        this.orderId = orderId;
+        this.customerId = customerId;
+        this.date = date;
+    }
 }

@@ -6,9 +6,28 @@ let total;
 window.onload = function() {
     loadCustomerIds();
     loadItemIds();
+    loadGenerateNextOrderId();
+
 };
 
-// $("#orderId").val(splitOrderId(orderDB[orderDB.length - 1]));
+
+
+function loadGenerateNextOrderId(){
+    $.ajax({
+        url: "http://localhost:8080/pos/placeOrder?option=generateNextOrderId",
+        method: "GET",
+        contentType: "application/json",
+        success: function (response) {
+            console.log(response);
+            $("#orderId").val(splitOrderId(response.orderId));
+
+        },
+        error: function (jqXHR) {
+            console.log(jqXHR);
+        }
+
+    })
+}
 
 function loadCustomerIds() {
     $("#customerIdCmb").empty();
@@ -84,6 +103,7 @@ $("#itemIdCmb").click(function () {
     let id=$("#itemIdCmb").val();
     console.log(id)
 
+
     $.ajax({
         url: "http://localhost:8080/pos/placeOrder?option=itemSearch&id="+id,
         method: "GET",
@@ -95,6 +115,22 @@ $("#itemIdCmb").click(function () {
             $("#itemPriceCmb").val(response.price);
             $("#itemTypeCmb").val(response.type);
             $("#itemQtyCmb").val(response.qty);
+
+            if (response.qty==0) {
+                $("#qtyWarningLbl").css({
+                    "display": "block",
+                    "color": "red",
+                    "font-size": "12px"
+                });
+
+            }
+
+            else {
+                $("#qtyWarningLbl").css({
+                    "display": "none"
+
+                });
+            }
         },
         error: function (jqXHR) {
             console.log(jqXHR);
@@ -109,44 +145,26 @@ $("#itemIdCmb").click(function () {
 
 $("#addToCart").click(function () {
 
-    if ($("#itemNameCmb").val().length === 0 |
+    if ($("#itemNameCmb").val().length===0 |
         $("#itemPriceCmb").val().length === 0 | $("#itemTypeCmb").val().length === 0) {
         alert("please fill out all empty fields !");
 
 
     } else {
-        if ($("#itemQtyCmb").val().length === 0) {
-            $("#qtyWarningLbl").css({
-                "color": "red",
-                "font-size": "14px"
-            });
 
-        } else {
-                setPlaceOrderDetails();
+        if ($("#itemQtyCmb").val()==0) {
+            Swal.fire(
+                'Add to cart  fail',
+                'no Quantity available to proceed ..!',
+                'error'
+            )
 
+        }else{
+            console.log($("#itemQtyCmb").val())
+            setPlaceOrderDetails();
         }
 
     }
-
-
-
-    // if ($('#placeOrderTbody>tr').length === 0) {
-
-    // }
-    // else {
-    //     for (let i = 0; i <= ln.length; i++) {
-
-    //         if ($("#placeOrderTbody>tr")[i].children(":nth-child(1)").text() == $("#itemIdCmb").val()) {
-    //             alert("found");
-    //             break;
-
-    //         } else {
-    //           setPlaceOrderDetails();
-    //         }
-
-    //     }
-
-    // }
 
 })
 
@@ -240,25 +258,6 @@ $("#payment").on("keydown keyup", function (e) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 $("#placeOrderBtn").click(function () {
     let newOrderDetails = Object.assign({}, orderDetails);
     let newOrder = Object.assign({}, order);
@@ -307,7 +306,7 @@ $("#placeOrderBtn").click(function () {
 
                 success: function (response) {
                     console.log(response);
-
+                    loadGenerateNextOrderId();
                     Swal.fire(
                         'Order Saved Successfully',
                         'Order has been Placed successfully..!',
@@ -317,6 +316,7 @@ $("#placeOrderBtn").click(function () {
                 },
                 error: function (jqXHR) {
                     console.log(jqXHR);
+
                     Swal.fire(
                         'process failed',
                         'Order placed failed..!',
@@ -345,9 +345,6 @@ $("#placeOrderBtn").click(function () {
 
 
 })
-
-
-
 
 
 

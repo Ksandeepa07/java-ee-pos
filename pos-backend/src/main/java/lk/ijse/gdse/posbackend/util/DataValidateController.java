@@ -9,11 +9,11 @@ public class DataValidateController {
    static String CUS_ADDRESS_REGEX = "^[A-Za-z0-9 ]{8,}$";
     static String CUS_SALARY_REGEX = "^\\d+(\\.\\d{1,2})?$";
 
-    String ITEM_ID_REGEX = "^I\\d{3}$";
-    String ITEM_NAME_REGEX = "^[A-Za-z ]{5,}$";
-    String ITEM_TYPE_REGEX = "^[A-Za-z ]{5,}$";
-    String ITEM_UNIT_PRICE_REGEX = "^\\$?\\d+(?:\\.\\d{2})?$";
-    String ITEM_QTY_REGEX = "^\\d+$";
+   static String ITEM_ID_REGEX = "^I\\d{3}$";
+   static String ITEM_NAME_REGEX = "^[A-Za-z ]{5,}$";
+   static String ITEM_TYPE_REGEX = "^[A-Za-z ]{5,}$";
+   static String ITEM_UNIT_PRICE_REGEX = "^\\$?\\d+(?:\\.\\d{2})?$";
+   static String ITEM_QTY_REGEX = "^\\d+$";
 
 
     public static boolean customerIdValidate(String customerId){
@@ -47,31 +47,31 @@ public class DataValidateController {
     //////////////////
 
     public static boolean itemIdValidate(String itemId){
-        Pattern pattern=Pattern.compile(CUS_SALARY_REGEX);
+        Pattern pattern=Pattern.compile(ITEM_ID_REGEX);
         Matcher matcher=pattern.matcher(itemId);
         return matcher.matches();
 
     }
     public static boolean itemNameValidate(String itemName){
-        Pattern pattern=Pattern.compile(CUS_SALARY_REGEX);
+        Pattern pattern=Pattern.compile(ITEM_NAME_REGEX);
         Matcher matcher=pattern.matcher(itemName);
         return matcher.matches();
 
     }
     public static boolean itemTypeValidate(String itemType){
-        Pattern pattern=Pattern.compile(CUS_SALARY_REGEX);
+        Pattern pattern=Pattern.compile(ITEM_TYPE_REGEX);
         Matcher matcher=pattern.matcher(itemType);
         return matcher.matches();
 
     }
     public static boolean itemPriceValidate(String itemPrice){
-        Pattern pattern=Pattern.compile(CUS_SALARY_REGEX);
+        Pattern pattern=Pattern.compile(ITEM_UNIT_PRICE_REGEX);
         Matcher matcher=pattern.matcher(itemPrice);
         return matcher.matches();
 
     }
     public static boolean itemQtyValidate(String itemQty){
-        Pattern pattern=Pattern.compile(CUS_SALARY_REGEX);
+        Pattern pattern=Pattern.compile(ITEM_QTY_REGEX);
         Matcher matcher=pattern.matcher(itemQty);
         return matcher.matches();
 
