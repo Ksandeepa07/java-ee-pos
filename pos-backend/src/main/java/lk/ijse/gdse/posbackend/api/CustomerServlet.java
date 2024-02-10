@@ -101,9 +101,10 @@ public class CustomerServlet extends HttpServlet {
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
+
         if (request.getParameter("method").equals("getAll")) {
-            try (Connection connection = pool.getConnection()) {
-                ArrayList<CustomerDTO> allCustomers = customerBO.getAllCustomers(connection);
+            try (Connection con = pool.getConnection()) {
+                ArrayList<CustomerDTO> allCustomers = customerBO.getAllCustomers(con);
                 if (allCustomers != null) {
                     response.setContentType("application/json");
                     response.setStatus(HttpServletResponse.SC_CREATED);
@@ -235,6 +236,5 @@ public class CustomerServlet extends HttpServlet {
 
     }
 
-    public void destroy() {
-    }
+
 }

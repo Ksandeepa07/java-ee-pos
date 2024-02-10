@@ -68,9 +68,10 @@ public class ItemDAOImpl implements ItemDAO {
                  ));
              }
              return items;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            System.out.println(e);
         }
+        return null;
     }
 
     @Override

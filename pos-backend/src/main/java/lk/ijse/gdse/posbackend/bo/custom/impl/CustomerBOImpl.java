@@ -52,7 +52,6 @@ public class CustomerBOImpl implements CustomerBO<CustomerDTO, Connection, Strin
                     customer.getSalary()
             ));
         }
-        System.out.println("dtoListtt "+dtoArrayList);
         return dtoArrayList;
 
     }

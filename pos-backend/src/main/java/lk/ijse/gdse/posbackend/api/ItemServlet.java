@@ -27,7 +27,7 @@ public class ItemServlet extends HttpServlet {
     public void init() throws ServletException {
         try {
             pool = (DataSource) new InitialContext().lookup("java:/comp/env/jdbc/TestDB");
-            System.out.println(pool.getConnection());
+//            System.out.println(pool.getConnection());
 
         } catch (Exception e) {
             throw new RuntimeException(e);

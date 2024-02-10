@@ -82,7 +82,7 @@ public class PlaceOrderServlet extends HttpServlet {
         } else if (req.getParameter("option").equals("generateNextOrderId")) {
             try (Connection connection = pool.getConnection()) {
                 OrderDTO orderDTO = placeOrderBO.generateNextOrderId(connection);
-                System.out.println("g "+orderDTO);
+//                System.out.println("g "+orderDTO);
                 resp.setContentType("application/json");
                 resp.getWriter().write(JsonbBuilder.create().toJson(orderDTO));
 

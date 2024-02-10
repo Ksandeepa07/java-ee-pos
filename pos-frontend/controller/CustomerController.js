@@ -1,4 +1,4 @@
-
+getAllCustomers();
 window.onload = function() {
     getAllCustomers();
     tblRowClick();
